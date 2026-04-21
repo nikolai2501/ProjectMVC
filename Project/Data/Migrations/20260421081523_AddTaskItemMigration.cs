@@ -5,7 +5,7 @@
 namespace Project.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddTaskListsMigration : Migration
+    public partial class AddTaskItemMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

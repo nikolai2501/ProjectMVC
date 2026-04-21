@@ -34,6 +34,7 @@ namespace Project.Controllers
             }
 
             var taskList = await _context.TaskList
+                 .Include(t => t.Tasks)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (taskList == null)
             {

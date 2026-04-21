@@ -48,7 +48,7 @@ namespace Project.Controllers
         // GET: TaskItems/Create
         public IActionResult Create()
         {
-            ViewData["TaskListId"] = new SelectList(_context.Set<TaskList>(), "Id", "Name");
+            ViewData["TaskListId"] = new SelectList(_context.TaskList, "Id", "Id");
             return View();
         }
 
@@ -57,7 +57,7 @@ namespace Project.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,DueDate,Description,TaskListId")] TaskItem taskItem)
+        public async Task<IActionResult> Create([Bind("Id,Title,IsDone,TaskListId")] TaskItem taskItem)
         {
             if (ModelState.IsValid)
             {
@@ -65,7 +65,7 @@ namespace Project.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["TaskListId"] = new SelectList(_context.Set<TaskList>(), "Id", "Name", taskItem.TaskListId);
+            ViewData["TaskListId"] = new SelectList(_context.TaskList, "Id", "Id", taskItem.TaskListId);
             return View(taskItem);
         }
 
@@ -82,7 +82,7 @@ namespace Project.Controllers
             {
                 return NotFound();
             }
-            ViewData["TaskListId"] = new SelectList(_context.Set<TaskList>(), "Id", "Name", taskItem.TaskListId);
+            ViewData["TaskListId"] = new SelectList(_context.TaskList, "Id", "Id", taskItem.TaskListId);
             return View(taskItem);
         }
 
@@ -91,7 +91,7 @@ namespace Project.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,DueDate,Description,TaskListId")] TaskItem taskItem)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,IsDone,TaskListId")] TaskItem taskItem)
         {
             if (id != taskItem.Id)
             {
@@ -118,7 +118,7 @@ namespace Project.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["TaskListId"] = new SelectList(_context.Set<TaskList>(), "Id", "Name", taskItem.TaskListId);
+            ViewData["TaskListId"] = new SelectList(_context.TaskList, "Id", "Id", taskItem.TaskListId);
             return View(taskItem);
         }
 
@@ -155,7 +155,28 @@ namespace Project.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        [HttpPost]
+        public IActionResult AddTask(int taskListId, string title)
+        {
+            var list = _context.TaskList
+                .Include(t => t.Tasks)
+                .FirstOrDefault(t => t.Id == taskListId);
 
+            if (list == null)
+                return NotFound();
+
+            var task = new TaskItem
+            {
+                Title = title,
+                IsDone = false,
+                TaskListId = taskListId
+            };
+
+            list.Tasks.Add(task);
+            _context.SaveChanges();
+
+            return RedirectToAction("Details", new { id = taskListId });
+        }
         private bool TaskItemExists(int id)
         {
             return _context.TaskItem.Any(e => e.Id == id);
